@@ -1,0 +1,12 @@
+[package]
+name = "loki_text"
+version = "0.1.0"
+edition = "2021"
+license-file="LICENSE"
+repository="https://github.com/roquess/loki_text"
+description="A Rust library for advanced string manipulation with pattern searching and replacement capabilities."
+
+
+[dependencies]
+regex = "1.11"
+
