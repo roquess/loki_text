@@ -189,6 +189,116 @@ pub fn boyer_moore_search(text: &str, pattern: &str) -> Option<usize> {
     None
 }
 
+/// Finds the first occurrence of a substring using the Boyer-Moore-Horspool algorithm.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to search within.
+/// * `pattern` - A string slice that holds the substring to search for.
+///
+/// # Returns
+///
+/// * An `Option<usize>` containing the starting index of the first occurrence of the substring, or `None` if not found.
+///
+/// # Examples
+///
+/// ```
+/// let text = "The quick brown fox jumps over the lazy dog";
+/// let pattern = "quick";
+/// let result = loki_text::search::boyer_moore_horspool_search(text, pattern);
+/// assert_eq!(result, Some(4));
+/// ```
+pub fn boyer_moore_horspool_search(text: &str, pattern: &str) -> Option<usize> {
+    let text_bytes = text.as_bytes();
+    let pattern_bytes = pattern.as_bytes();
+    let m = pattern_bytes.len();
+    let n = text_bytes.len();
+
+    if m == 0 || n == 0 || m > n {
+        return None;
+    }
+
+    let mut shift_table = vec![m; 256];
+    for i in 0..m - 1 {
+        shift_table[pattern_bytes[i] as usize] = m - 1 - i;
+    }
+
+    let mut s = 0;
+    while s <= n - m {
+        let mut j = m - 1;
+        while j > 0 && pattern_bytes[j] == text_bytes[s + j] {
+            j -= 1;
+        }
+        if j == 0 && pattern_bytes[j] == text_bytes[s + j] {
+            return Some(s);
+        } else {
+            s += shift_table[text_bytes[s + m - 1] as usize];
+        }
+    }
+    None
+}
+
+/// Finds the first occurrence of a substring using the Z algorithm.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to search within.
+/// * `pattern` - A string slice that holds the substring to search for.
+///
+/// # Returns
+///
+/// * An `Option<usize>` containing the starting index of the first occurrence of the substring, or `None` if not found.
+///
+/// # Examples
+///
+/// ```
+/// let text = "The quick brown fox jumps over the lazy dog";
+/// let pattern = "quick";
+/// let result = loki_text::search::z_algorithm_search(text, pattern);
+/// assert_eq!(result, Some(4));
+/// ```
+pub fn z_algorithm_search(text: &str, pattern: &str) -> Option<usize> {
+    let concat = format!("{}{}", pattern, text);
+    let concat_bytes = concat.as_bytes();
+    let n = concat_bytes.len();
+    let m = pattern.len();
+
+    let mut z = vec![0; n];
+    let mut l = 0;
+    let mut r = 0;
+
+    for i in 1..n {
+        if i > r {
+            l = i;
+            r = i;
+            while r < n && concat_bytes[r] == concat_bytes[r - l] {
+                r += 1;
+            }
+            z[i] = r - l;
+            r -= 1;
+        } else {
+            let k = i - l;
+            if z[k] < r - i + 1 {
+                z[i] = z[k];
+            } else {
+                l = i;
+                while r < n && concat_bytes[r] == concat_bytes[r - l] {
+                    r += 1;
+                }
+                z[i] = r - l;
+                r -= 1;
+            }
+        }
+    }
+
+    for i in m..n {
+        if z[i] == m {
+            return Some(i - m);
+        }
+    }
+    None
+}
+
 /// Finds all occurrences of substrings using the Aho-Corasick algorithm.
 ///
 /// # Arguments
@@ -219,6 +329,67 @@ pub fn aho_corasick_search<'a>(text: &'a str, patterns: Vec<&'a str>) -> Vec<(us
         results.push((mat.start(), pattern));
     }
     results
+}
+
+/// Finds the first occurrence of a substring using the Rabin-Karp algorithm.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to search within.
+/// * `pattern` - A string slice that holds the substring to search for.
+///
+/// # Returns
+///
+/// * An `Option<usize>` containing the starting index of the first occurrence of the substring, or `None` if not found.
+///
+/// # Examples
+///
+/// ```
+/// let text = "The quick brown fox jumps over the lazy dog";
+/// let pattern = "quick";
+/// let result = loki_text::search::rabin_karp_search(text, pattern);
+/// assert_eq!(result, Some(4));
+/// ```
+pub fn rabin_karp_search(text: &str, pattern: &str) -> Option<usize> {
+    let text_bytes = text.as_bytes();
+    let pattern_bytes = pattern.as_bytes();
+    let m = pattern_bytes.len();
+    let n = text_bytes.len();
+    let q = 101; // A prime number
+    let d = 256; // Number of characters in the input alphabet
+
+    if m == 0 || n == 0 || m > n {
+        return None;
+    }
+
+    let mut p = 0; // Hash value for pattern
+    let mut t = 0; // Hash value for text
+    let mut h = 1;
+
+    for _ in 0..m - 1 {
+        h = (h * d) % q;
+    }
+
+    for i in 0..m {
+        p = (d * p + pattern_bytes[i] as u64) % q;
+        t = (d * t + text_bytes[i] as u64) % q;
+    }
+
+    for s in 0..=n - m {
+        if p == t {
+            let mut j = 0;
+            while j < m && pattern_bytes[j] == text_bytes[s + j] {
+                j += 1;
+            }
+            if j == m {
+                return Some(s);
+            }
+        }
+        if s < n - m {
+            t = (d * (t + q - (text_bytes[s] as u64 * h) % q) + text_bytes[s + m] as u64) % q;
+        }
+    }
+    None
 }
 
 #[cfg(test)]
@@ -264,11 +435,36 @@ mod tests {
     }
     
     #[test]
+    fn test_boyer_moore_horspool_search() {
+        let text = "The quick brown fox jumps over the lazy dog";
+        let pattern = "quick";
+        let result = boyer_moore_horspool_search(text, pattern);
+        assert_eq!(result, Some(4));
+    }
+
+    #[test]
+    fn test_z_algorithm_search() {
+        let text = "The quick brown fox jumps over the lazy dog";
+        let pattern = "quick";
+        let result = z_algorithm_search(text, pattern);
+        assert_eq!(result, Some(4));
+    }
+    
+    #[test]
     fn test_aho_corasick_search() {
         let text = "The quick brown fox jumps over the lazy dog";
         let patterns = vec!["quick", "fox", "dog"];
         let result = aho_corasick_search(text, patterns);
         assert_eq!(result, vec![(4, "quick"), (16, "fox"), (40, "dog")]);
     }
+
+    #[test]
+    fn test_rabin_karp_search() {
+        let text = "The quick brown fox jumps over the lazy dog";
+        let pattern = "quick";
+        let result = rabin_karp_search(text, pattern);
+        assert_eq!(result, Some(4));
+    }
+
 }
 

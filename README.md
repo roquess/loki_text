@@ -14,7 +14,7 @@ Add `loki_text` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-loki_text = "0.1.0"
+loki_text = "0.1.2"
 ```
 
 ## Examples
