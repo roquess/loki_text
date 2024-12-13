@@ -14,7 +14,7 @@ Add `loki_text` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-loki_text = "0.1.2"
+loki_text = "0.1.3"
 ```
 
 ## Examples
@@ -29,6 +29,16 @@ let pattern = r"quick\s(\w+)";
 let result = find_pattern(text, pattern);
 assert_eq!(result, Some("brown".to_string()));
 ```
+
+#### Features
+
+- **Knuth-Morris-Pratt (KMP) Algorithm**: A classic algorithm for substring search with linear time complexity.
+- **Boyer-Moore Algorithm**: An efficient algorithm that skips characters while searching for a pattern.
+- **Boyer-Moore-Horspool Algorithm**: A simplified version of the Boyer-Moore algorithm that is easier to implement and understand.
+- **Z-Algorithm**: A linear time algorithm used for pattern searching and other string processing tasks.
+- **Aho-Corasick Algorithm**: A multi-pattern search algorithm that builds a finite state machine from a set of keywords.
+- **Rabin-Karp Algorithm**: A string-searching algorithm that uses hashing to find any one of a set of pattern strings in a text.
+
 
 ### Text Transformation
 
