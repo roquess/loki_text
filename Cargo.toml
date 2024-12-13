@@ -1,6 +1,6 @@
 [package]
 name = "loki_text"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 license-file="LICENSE"
 repository="https://github.com/roquess/loki_text"
