@@ -1,5 +1,5 @@
 use regex::Regex;
-use aho_corasick::AhoCorasick;
+use std::collections::{HashMap, VecDeque};
 
 /// Finds the first occurrence of a pattern in the text and returns the captured group.
 ///
@@ -299,6 +299,90 @@ pub fn z_algorithm_search(text: &str, pattern: &str) -> Option<usize> {
     None
 }
 
+#[derive(Default)]
+struct AhoCorasick {
+    goto: HashMap<(usize, char), usize>,
+    output: Vec<Vec<usize>>,
+    fail: Vec<usize>,
+    pattern_lengths: Vec<usize>,
+}
+
+impl AhoCorasick {
+    fn new(patterns: Vec<&str>) -> Self {
+        let mut ac = AhoCorasick::default();
+        ac.build(patterns);
+        ac
+    }
+
+    fn build(&mut self, patterns: Vec<&str>) {
+        let mut new_state = 0;
+        self.goto.insert((0, '\0'), 0);
+        
+        // Initialize output vector with one element for state 0
+        self.output = vec![vec![]];
+        self.pattern_lengths = patterns.iter().map(|p| p.len()).collect();
+        
+        for (i, pattern) in patterns.iter().enumerate() {
+            let mut current_state = 0;
+            for c in pattern.chars() {
+                if !self.goto.contains_key(&(current_state, c)) {
+                    new_state += 1;
+                    self.goto.insert((current_state, c), new_state);
+                    // Ajouter un nouveau vecteur vide pour le nouvel état
+                    self.output.push(vec![]);
+                }
+                current_state = *self.goto.get(&(current_state, c)).unwrap();
+            }
+            self.output[current_state].push(i);
+        }
+        
+        self.fail = vec![0; new_state + 1];
+        let mut queue = VecDeque::new();
+        
+        for (&(state, _c), &next) in self.goto.iter().filter(|(&(_, c), _)| c != '\0') {
+            if state == 0 {
+                queue.push_back(next);
+            }
+        }
+        
+        while let Some(state) = queue.pop_front() {
+            for (&(_, c), _) in self.goto.iter().filter(|(&(_, c), _)| c != '\0') {
+                if let Some(&next_state) = self.goto.get(&(state, c)) {
+                    let mut fail_state = self.fail[state];
+                    while !self.goto.contains_key(&(fail_state, c)) && fail_state != 0 {
+                        fail_state = self.fail[fail_state];
+                    }
+                    self.fail[next_state] = self.goto.get(&(fail_state, c)).copied().unwrap_or(0);
+                    
+                    let fail_outputs = self.output[self.fail[next_state]].clone();
+                    self.output[next_state].extend_from_slice(&fail_outputs);
+                    
+                    queue.push_back(next_state);
+                }
+            }
+        }
+    }
+
+    fn find_iter<'a>(&'a self, text: &'a str) -> impl Iterator<Item = (usize, usize)> + 'a {
+        let mut current_state = 0;
+        let mut results = Vec::new();
+        
+        for (i, c) in text.chars().enumerate() {
+            while !self.goto.contains_key(&(current_state, c)) && current_state != 0 {
+                current_state = self.fail[current_state];
+            }
+            current_state = self.goto.get(&(current_state, c)).copied().unwrap_or(0);
+            
+            for &pattern_index in &self.output[current_state] {
+                let start = i + 1 - self.pattern_lengths[pattern_index];
+                results.push((start, pattern_index));
+            }
+        }
+        
+        results.into_iter()
+    }
+}
+
 /// Finds all occurrences of substrings using the Aho-Corasick algorithm.
 ///
 /// # Arguments
@@ -319,15 +403,13 @@ pub fn z_algorithm_search(text: &str, pattern: &str) -> Option<usize> {
 /// assert_eq!(result, vec![(4, "quick"), (16, "fox"), (40, "dog")]);
 /// ```
 pub fn aho_corasick_search<'a>(text: &'a str, patterns: Vec<&'a str>) -> Vec<(usize, &'a str)> {
-    // Unwrap the Result or handle potential errors
-    let ac = AhoCorasick::new(patterns.clone()).expect("Failed to create Aho-Corasick automaton");
-    
+    let ac = AhoCorasick::new(patterns.clone());
     let mut results = Vec::new();
-    for mat in ac.find_iter(text) {
-        // Use the patterns vector to get the actual string pattern
-        let pattern = patterns[mat.pattern().as_usize()];
-        results.push((mat.start(), pattern));
+
+    for (start, pattern_index) in ac.find_iter(text) {
+        results.push((start, patterns[pattern_index]));
     }
+
     results
 }
 
