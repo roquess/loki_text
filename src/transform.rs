@@ -317,6 +317,281 @@ pub fn to_title_case(text: &str) -> String {
         .join(" ")
 }
 
+/// Converts a string to PascalCase.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to convert.
+///
+/// # Returns
+///
+/// * A `String` containing the PascalCase text.
+///
+/// # Examples
+///
+/// ```
+/// let text = "hello world";
+/// let result = loki_text::transform::to_pascal_case(text);
+/// assert_eq!(result, "HelloWorld");
+/// ```
+pub fn to_pascal_case(text: &str) -> String {
+    let mut result = String::new();
+    let mut capitalize_next = true;
+
+    for c in text.chars() {
+        if c.is_whitespace() || c == '_' || c == '-' {
+            capitalize_next = true;
+        } else {
+            if capitalize_next {
+                result.push(c.to_ascii_uppercase());
+                capitalize_next = false;
+            } else {
+                result.push(c.to_ascii_lowercase());
+            }
+        }
+    }
+
+    result
+}
+
+/// Converts a string to SCREAMING_SNAKE_CASE.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to convert.
+///
+/// # Returns
+///
+/// * A `String` containing the SCREAMING_SNAKE_CASE text.
+///
+/// # Examples
+///
+/// ```
+/// let text = "Hello World";
+/// let result = loki_text::transform::to_screaming_snake_case(text);
+/// assert_eq!(result, "HELLO_WORLD");
+/// ```
+pub fn to_screaming_snake_case(text: &str) -> String {
+    to_snake_case(text).to_uppercase()
+}
+
+/// Converts a string to alternating case.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to convert.
+///
+/// # Returns
+///
+/// * A `String` containing the alternating case text.
+///
+/// # Examples
+///
+/// ```
+/// let text = "hello world";
+/// let result = loki_text::transform::to_alternating_case(text);
+/// assert_eq!(result, "hElLo WoRlD");
+/// ```
+pub fn to_alternating_case(text: &str) -> String {
+    let mut result = String::new();
+    let mut letter_index = 0;
+
+    for c in text.chars() {
+        if c.is_alphabetic() {
+            if letter_index % 2 == 0 {
+                result.push_str(&c.to_lowercase().collect::<String>());
+            } else {
+                result.push_str(&c.to_uppercase().collect::<String>());
+            }
+            letter_index += 1;
+        } else {
+            result.push(c);
+        }
+    }
+
+    result
+}
+
+/// Inverts the case of each character in a string.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to invert.
+///
+/// # Returns
+///
+/// * A `String` containing the inverted case text.
+///
+/// # Examples
+///
+/// ```
+/// let text = "Hello World";
+/// let result = loki_text::transform::invert_case(text);
+/// assert_eq!(result, "hELLO wORLD");
+/// ```
+pub fn invert_case(text: &str) -> String {
+    text.chars()
+        .map(|c| {
+            if c.is_lowercase() {
+                c.to_uppercase().collect::<String>()
+            } else if c.is_uppercase() {
+                c.to_lowercase().collect::<String>()
+            } else {
+                c.to_string()
+            }
+        })
+        .collect()
+}
+
+/// Normalizes whitespace by replacing multiple spaces with single spaces.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to normalize.
+///
+/// # Returns
+///
+/// * A `String` containing the normalized text.
+///
+/// # Examples
+///
+/// ```
+/// let text = "hello    world   test";
+/// let result = loki_text::transform::normalize_whitespace(text);
+/// assert_eq!(result, "hello world test");
+/// ```
+pub fn normalize_whitespace(text: &str) -> String {
+    text.split_whitespace().collect::<Vec<&str>>().join(" ")
+}
+
+/// Truncates a string to a maximum length.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to truncate.
+/// * `max_length` - The maximum length of the resulting string.
+///
+/// # Returns
+///
+/// * A `String` containing the truncated text.
+///
+/// # Examples
+///
+/// ```
+/// let text = "hello world";
+/// let result = loki_text::transform::truncate(text, 5);
+/// assert_eq!(result, "hello");
+/// ```
+pub fn truncate(text: &str, max_length: usize) -> String {
+    if text.len() <= max_length {
+        text.to_string()
+    } else {
+        text.chars().take(max_length).collect()
+
+    }
+}
+
+/// Repeats each character in a string n times.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to process.
+/// * `times` - The number of times to repeat each character.
+///
+/// # Returns
+///
+/// * A `String` containing the text with repeated characters.
+///
+/// # Examples
+///
+/// ```
+/// let text = "hello";
+/// let result = loki_text::transform::repeat_chars(text, 2);
+/// assert_eq!(result, "hheelllloo");
+/// ```
+pub fn repeat_chars(text: &str, times: usize) -> String {
+    text.chars()
+        .map(|c| c.to_string().repeat(times))
+        .collect()
+}
+
+/// Removes all vowels from a string.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to process.
+///
+/// # Returns
+///
+/// * A `String` containing the text without vowels.
+///
+/// # Examples
+///
+/// ```
+/// let text = "hello world";
+/// let result = loki_text::transform::remove_vowels(text);
+/// assert_eq!(result, "hll wrld");
+/// ```
+pub fn remove_vowels(text: &str) -> String {
+    text.chars()
+        .filter(|c| !"aeiouAEIOU".contains(*c))
+        .collect()
+}
+
+/// Removes all consonants from a string.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to process.
+///
+/// # Returns
+///
+/// * A `String` containing the text without consonants.
+///
+/// # Examples
+///
+/// ```
+/// let text = "hello world";
+/// let result = loki_text::transform::remove_consonants(text);
+/// assert_eq!(result, "eo o");
+/// ```
+pub fn remove_consonants(text: &str) -> String {
+    text.chars()
+        .filter(|c| "aeiouAEIOU ".contains(*c) || !c.is_alphabetic())
+        .collect()
+}
+
+/// Converts text to basic leetspeak.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to convert.
+///
+/// # Returns
+///
+/// * A `String` containing the leetspeak text.
+///
+/// # Examples
+///
+/// ```
+/// let text = "hello world";
+/// let result = loki_text::transform::to_leet_speak(text);
+/// assert_eq!(result, "h3ll0 w0rld");
+/// ```
+pub fn to_leet_speak(text: &str) -> String {
+    text.chars()
+        .map(|c| match c.to_ascii_lowercase() {
+            'a' => '4',
+            'e' => '3',
+            'i' => '1',
+            'o' => '0',
+            's' => '5',
+            't' => '7',
+            _ => c,
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -400,6 +675,96 @@ mod tests {
         let text = "hello world";
         let result = to_title_case(text);
         assert_eq!(result, "Hello World");
+    }
+
+    #[test]
+    fn test_to_pascal_case() {
+        let text = "hello world";
+        assert_eq!(to_pascal_case(text), "HelloWorld");
+        
+        let text = "hello_world_test";
+        assert_eq!(to_pascal_case(text), "HelloWorldTest");
+    }
+
+    #[test]
+    fn test_to_screaming_snake_case() {
+        let text = "Hello World";
+        assert_eq!(to_screaming_snake_case(text), "HELLO_WORLD");
+        
+        let text = "camelCaseText";
+        assert_eq!(to_screaming_snake_case(text), "CAMEL_CASE_TEXT");
+    }
+
+    #[test]
+    fn test_to_alternating_case() {
+        let text = "hello";
+        assert_eq!(to_alternating_case(text), "hElLo");
+        
+        let text = "test";
+        assert_eq!(to_alternating_case(text), "tEsT");
+    }
+
+    #[test]
+    fn test_invert_case() {
+        let text = "Hello World";
+        assert_eq!(invert_case(text), "hELLO wORLD");
+        
+        let text = "tEST";
+        assert_eq!(invert_case(text), "Test");
+    }
+
+    #[test]
+    fn test_normalize_whitespace() {
+        let text = "hello    world   test";
+        assert_eq!(normalize_whitespace(text), "hello world test");
+        
+        let text = "  hello world  ";
+        assert_eq!(normalize_whitespace(text), "hello world");
+    }
+
+    #[test]
+    fn test_truncate() {
+        let text = "hello world";
+        assert_eq!(truncate(text, 5), "hello");
+        
+        let text = "hi";
+        assert_eq!(truncate(text, 5), "hi");
+    }
+
+    #[test]
+    fn test_repeat_chars() {
+        let text = "hello";
+        assert_eq!(repeat_chars(text, 2), "hheelllloo");
+        
+        let text = "hi";
+        assert_eq!(repeat_chars(text, 3), "hhhiii");
+    }
+
+    #[test]
+    fn test_remove_vowels() {
+        let text = "hello world";
+        assert_eq!(remove_vowels(text), "hll wrld");
+        
+        let text = "AEIOU";
+        assert_eq!(remove_vowels(text), "");
+    }
+
+    #[test]
+    fn test_remove_consonants() {
+        let text = "hello world";
+        assert_eq!(remove_consonants(text), "eo o");
+        
+        let text = "bcdfg";
+        assert_eq!(remove_consonants(text), "");
+    }
+
+    #[test]
+    fn test_to_leet_speak() {
+        let text = "hello world";
+        assert_eq!(to_leet_speak(text), "h3ll0 w0rld");
+        
+        let text = "test";
+        assert_eq!(to_leet_speak(text), "7357");
     }
 }
 
