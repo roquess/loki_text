@@ -1,7 +1,7 @@
 [package]
 name = "loki_text"
-version = "0.1.6"
-edition = "2021"
+version = "0.1.7"
+edition = "2024"
 license="MIT"
 repository="https://github.com/roquess/loki_text"
 description="A Rust library for advanced string manipulation with pattern searching and replacement capabilities."
